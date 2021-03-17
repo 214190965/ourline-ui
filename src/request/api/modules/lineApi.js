@@ -16,6 +16,13 @@ const line = {
    * */
   getPointLineMap(data){
     return Ajax.request(Constants.zuulPath_point + '/plmap', data, 'get');
+  },
+
+  /**
+   * 新增路径
+   * */
+  savePointLineMap(data){
+    return Ajax.request(Constants.zuulPath_point + '/save', data, 'get');
   }
 };
 export default line
