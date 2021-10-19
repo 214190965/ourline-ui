@@ -9,20 +9,22 @@ const line = {
    * @param data JSONObject
    */
   getUserLine(data) {
-    return Ajax.request(Constants.zuulPath_point + '/line', data, 'get');
-  },
-  /**
-   * 获取节点路径映射
-   * */
-  getPointLineMap(data){
-    return Ajax.request(Constants.zuulPath_point + '/plmap', data, 'get');
+    return Ajax.request(Constants.zuulPath_line + '/get', data, 'get');
   },
 
   /**
    * 新增路径
    * */
-  savePointLineMap(data){
-    return Ajax.request(Constants.zuulPath_point + '/save', data, 'get');
+  saveLines(data){
+    return Ajax.request(Constants.zuulPath_line + '/save',
+      data, 'post',Constants.http_content_type.json);
+  },
+  /**
+   * 更新路径
+   * */
+  editLines(data){
+    return Ajax.request(Constants.zuulPath_line + '/edit',
+      data, 'post',Constants.http_content_type.json);
   }
 };
 export default line

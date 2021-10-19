@@ -1251,9 +1251,10 @@
                 }
                 //如果存在，则只增加点赞次数
                 if(have){
-                  today.userlist[i].nums++;
+                  // today.userlist[i].nums++;
                   //排序数组，把最新点赞的放到数组的第一位
                   let user = today.userlist[i];
+                  user.nums++;
                   today.userlist.splice(i,1);
                   today.userlist.unshift(user);
                 }else{

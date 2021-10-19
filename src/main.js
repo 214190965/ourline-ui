@@ -13,7 +13,8 @@ import Ajax from './request/http'
 import Api from './request/api'
 import { InfiniteScroll,Input,Button,Tooltip,
         Tabs,TabPane,DatePicker,Cascader,Select,
-        Option,Checkbox,Radio,Form,FormItem,Slider,Switch,Link} from 'element-ui'
+        Option,Checkbox,Radio,Form,FormItem,
+        Slider,Switch,Link,ColorPicker} from 'element-ui'
 Vue.config.productionTip = false;
 /* eslint-disable no-new */
 Vue.use(InfiniteScroll);
@@ -32,7 +33,8 @@ Vue.component(Form.name,Form);
 Vue.component(FormItem.name,FormItem);
 Vue.component(Slider.name,Slider);
 Vue.component(Switch.name,Switch);
-Vue.component(Link.name,Link),
+Vue.component(Link.name,Link);
+Vue.component(ColorPicker.name,ColorPicker);
 Vue.component('lottie',lottie);
 Vue.config.debug = true;//开启错误提示
 

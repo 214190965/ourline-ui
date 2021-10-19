@@ -48,7 +48,7 @@ const mutations = {
     Util.setSession(KEYS.token, token);
   },
   setOwner: (state, owner) => {
-    state.token = owner;
+    state.owner = owner;
     Util.setSession(KEYS.owner, owner);
   },
   setLang: (state, lang) => {

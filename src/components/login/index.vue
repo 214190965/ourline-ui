@@ -1,5 +1,12 @@
 <template>
   <div class="context">
+<!--    <div style="height: 20px;width: 20px;"-->
+<!--         v-for="item in this.testArr"-->
+<!--    >{{item.x}}</div>-->
+<!--    <button @click="test"> test</button>-->
+<!--    <div style="height: 20px;width: 20px;background-color: black" draggable="true"></div>-->
+    <button @click="test">AAAAAAA</button>
+
     <div class="main"
          ref="main"
          style="transform: rotate(0deg)"
@@ -72,10 +79,13 @@
 </template>
 
 <script>
+  import Vue from 'vue'
     export default {
         name: "login",
         data(){
           return{
+            testMap:new Map(),
+            testArr:[],
             loginForm:{
               userid:'',
               password:'',
@@ -105,7 +115,40 @@
             language:'01',
           }
         },
+      created(){
+          this.testMap.set("1",{x:3,y:1});
+          this.testMap.set("2",{x:2,y:2});
+        // this.testMap.set("1",3);
+        // this.testMap.set("2",2);
+          this.testArr.push({x:3,y:1});
+          this.testArr.push({x:4,y:1});
+      },
         methods:{
+          test(){
+            let arr = [{a: 1, b: 2}, {a: 2, b: 1}, {a: 1, b: 1}];
+            var compare1 = function(pre,aft){
+              if(pre.a < aft.a){
+                return -1
+              }else if(pre.a > aft.a ){
+                return 1;
+              }else{
+                return 0;
+              }
+            }
+            var compare2 = function(pre,aft){
+              if(pre.b < aft.b){
+                return 1
+              }else if(pre.b < aft.b){
+                return -1;
+              }else{
+                return 0;
+              }
+            }
+            arr.sort(compare1);
+            arr.sort(compare2);
+
+          console.log(arr);
+          },
           login(){
             //表单验证
             this.$refs['loginForm'].validate((valid)=>{

@@ -1,36 +1,35 @@
 <template>
     <div id="mainpage">
       <div id="head">
-        <lottie :options="lottieOptions" :height="72" :width="1536"></lottie>
-<!--        <div class="head-webicon"-->
-<!--            @mouseover="downPictureSlow"-->
-<!--            @mouseleave="downPictureFast">-->
-<!--        </div>-->
-<!--        <div class="head-opation">-->
-<!--          <div class="login-out"-->
-<!--               @click="showLoginOutOpa">注销</div>-->
-<!--          <div class="web-help">帮助</div>-->
-<!--        </div>-->
-<!--        <div class="login-out-context"-->
-<!--             style="height: 0px;"-->
-<!--             ref="loginOutContext">-->
-<!--          <svg-->
-<!--            xmlns="http://www.w3.org/2000/svg"-->
-<!--            version="1.1"-->
-<!--            style="display:block;"-->
-<!--            width="100%"-->
-<!--            height="10">-->
-<!--            <path d="M0 10 L20 10 25 0 30 10 70 10"-->
-<!--                  fill="none"-->
-<!--                  stroke="black"-->
-<!--                  stroke-width="1"-->
-<!--            ></path>-->
-<!--          </svg>-->
-<!--          <div class="login-out-opa">-->
-<!--            <div class="change-account">切换账号</div>-->
-<!--            <div class="login-out-real">注销账号</div>-->
-<!--          </div>-->
-<!--        </div>-->
+<!--        <lottie :options="lottieOptions" :height="72" :width="1536"></lottie>-->
+        <div class="head-webicon"
+             @click="showLoginOutOpa">
+        </div>
+        <div class="head-opation">
+          <div class="login-out"
+               @click="showLoginOutOpa">注销</div>
+          <div class="web-help">帮助</div>
+          <div class="login-out-context"
+               style="height: 0px;"
+               ref="loginOutContext">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              version="1.1"
+              style="display:block;"
+              width="100%"
+              height="10">
+              <path d="M0 10 L20 10 25 0 30 10 70 10"
+                    fill="none"
+                    stroke="black"
+                    stroke-width="1"
+              ></path>
+            </svg>
+            <div class="login-out-opa">
+              <div class="change-account">切换账号</div>
+              <div class="login-out-real">注销账号</div>
+            </div>
+          </div>
+        </div>
       </div>
       <div id="user">
         <div id="user-head"
@@ -54,32 +53,41 @@
           <!--普通节点-->
           <div class="commonpoint"
                id="cpoint"
-               ref="commonpoint"
-               @dragstart="dragstart"
                draggable="true"
-               ></div>
+               @dragend="drop"></div>
           <!--线条-->
           <div class="linepic" @click="ChangeMouseState"></div>
-          <div id="optionalpoint"></div>
+          <!--编辑颜色-->
+          <div class="edit-color"
+               @click="editColor"
+               :style="{'background-color':curEditColor}"></div>
+          <!--编辑操作 撤销 取消 保存-->
+          <div class="edit-revoke"
+               @click="editRevoke"></div>
+          <div class="edit-cancel"
+               @click="editCancel"></div>
+          <div class="edit-save"
+               @click="editSave"></div>
+          <!--当前编辑状态-->
+          <div class="edit-status"></div>
         </div>
         <!--画布盒子-->
         <div class="plainer"
-             style="width: 100%;height: 93%"
-             @drop.prevent="drop"
-             @dragover.prevent>
+             style="width: 100%;height: 93%">
           <div v-for="(item,index) in PointList"
                :key="index">
-            <div class="commonpoint"
-                 v-bind:class="{'plainMouseShape':changePlainMouse}"
-                 :style="{'left':item.x+'px','top':item.y+'px'}"
-                 :id="item.id"
-                 ref="point"
-                 @mousedown="pointStart($event,item)"
-                 draggable="true"
-                 @drag="draging($event,item)"
-                 @dragend="pointEnd($event,item)"
-                 @click="ShowHeadPic($event,item)"
-                 @contextmenu.prevent="getMsgStartPoint">
+              <div class="pointins"
+                   v-bind:class="{'plainMouseShape':changePlainMouse}"
+                   :style="{'left':item.x+'px','top':item.y+'px'}"
+                   :id="item.id"
+                   @mousedown.prevent="draging($event,item,index)"
+                   @click="ShowHeadPic($event,item)"
+                   @contextmenu.prevent="getMsgStartPoint(item)">
+              <!--节点具象-->
+              <div style="height: 20px;width: 20px;
+                          margin-left: -10px;margin-top: -10px;
+                          border-radius: 50%"
+                   :style="{'background-color':item.color}"></div>
             </div>
             <transition-group appear tag="div"
                               v-on:before-enter="beforeEnter"
@@ -112,9 +120,9 @@
                     +'C'+item.x2+' '+item.y2+' '+item.x3+' '+item.y3
                     +' '+item.x4+' '+item.y4"
               fill="none"
-              stroke="red"
+              :stroke="curEditColor"
               stroke-width="5"
-              @mousedown="ChangeLineShape"
+              @mousedown="ChangeLineShape($event,index)"
             ></path>
           </svg>
         </div>
@@ -290,6 +298,26 @@
           </div>
         </div>
       </div>
+      <!--EC edit color 预编辑颜色-->
+      <div class="color-edit"
+           v-if="editColorShow">
+         <svg
+           xmlns="http://www.w3.org/2000/svg"
+           version="1.1"
+           style="display:block;"
+           width="100%"
+           height="12">
+           <path d="M63 11.2 L73 0 83 11.2"
+                 fill="#eeeeee"
+                 stroke="black"
+                 stroke-width="0.5"
+           ></path>
+         </svg>
+         <back-color
+          location="EC"
+          v-on:update:change-color="changeEditColor"
+        ></back-color>
+      </div>
       <!--节点信息-->
       <transition
         appear
@@ -359,38 +387,44 @@
 
 <script>
   import velocity from 'velocity-animate/velocity.min'
+  import backColor from "../card/backColor"
   import pointmsg from '../card/pointMassage'
   import userpage from '../card/userPage'
   import earthpage from '../card/earthPage'
   import jupterPage from '../card/jupiterPage'
   import * as lottieAnimation from '../../assets/lottie/1800-sky'
+  import Vue from 'vue'
+  import BackImage from "@/components/card/backImage";
   export default {
       name: "mainpage",
-      components:{ pointmsg,userpage,earthpage,jupterPage },
+      components:{BackImage, pointmsg,userpage,earthpage,jupterPage,backColor},
       data(){
           return{
-              test:false,
+              test:['1','2','3'],
+              curPoint:null,
               showMsgBox:false,
               showUserPage:false,
               showGlobePage:false,//全局设置界面
               earthPageShow:false,
               jupiterPageShow:false,
-              isNewPoint:true,
+              // isNewPoint:false,
               msgStartPoint:{id:null,x:200,y:200},
               show:false,
+              editColorShow:false,
+              curEditColor:'yellow',
               friends:[{name:"pl"},{name:"ll"},{name:"sj"}],
               PointList:[],
               LittleList:[],
               LineList:[],
               items:[],
-              positionX:0,
-              positionY:0,
-              offsetX:0,
-              offsetY:0,
-              pointOffsetX:0,
-              pointOffsetY:0,
-              pointX:0,
-              pointY:0,
+              // positionX:0,
+              // positionY:0,
+              // offsetX:0,
+              // offsetY:0,
+              // pointOffsetX:0,
+              // pointOffsetY:0,
+              // startX:0,
+              // startY:0,
               mouseState:"undefined",//鼠标状态
               // pointFlag:0,
               firstPoint:null,
@@ -400,12 +434,14 @@
               leaveFast:0,
               //vague:false,//设置线条模糊
               lineState:0,
+              //onDrag:false,
               changePlainMouse:false,
-              PointLineList: [],
-              leftLinePointList:[],
-              rightLinePointList:[],
+              RevokeObject:[], //撤销对象
+              //PointLineIndexList: [],
+              // leftLinePointList:[],
+            // rightLinePointList:[],
               // leftLinePointMapper:new Map(),
-              // rightLinePointMapper:new Map(),
+              //rightLinePointMapper:new Map(),
               //下边页面展示
               chatGroups:[
                 {
@@ -462,181 +498,147 @@
       },
       //在渲染成html之后调用
       mounted(){
-        //初始化
-        this.leftLinePointMapper.set("none",[]);
-        this.rightLinePointMapper.set("none",[]);
       },
       methods:{
-        dragstart(e){
-          // e.dataTransfer.clearData();
-          // let cpoint = {id:e.target.id,isNew:true,};
-          this.isNewPoint = true;
-          // e.dataTransfer.setData('point',JSON.stringify(cpoint));
-          this.offsetX = e.offsetX;
-          this.offsetY = e.offsetY;
-        },
         drop(e){
-          //第一次进入新增
-          if(this.isNewPoint){
-            let x = e.clientX;
-            let y = e.clientY;
-            x -= this.offsetX;
-            y -= this.offsetY;
-            //添加新的属性,相当于{x:10}
-            // info.x = x/document.documentElement.clientWidth;
-            // info.y = y/document.documentElement.clientHeight;
-            let point = {x:x,y:y,id:Date.now(),open:false};
-            this.PointList.push(point);
-            //数据同步到数据库
-            this.$api.point.savePoint(
-              {
-                x:point.x,
-                y:point.y
-              }
-            ).then((res)=>{
-              if(res.retCode !== '200'){
-                console.log("save point line error");
-                return false;
-              }
-            }).catch((err)=>{
-              console.log(err);
-            });
-            //记录第一次的落点位置
-            this.pointX = x;
-            this.pointY = y;
-          }
+          //   第一次进入新增
+          let x = e.clientX;
+          let y = e.clientY;
+          //添加新的属性,相当于{x:10}
+          // info.x = x/document.documentElement.clientWidth;
+          // info.y = y/document.documentElement.clientHeight;
+          let point = {x: x, y: y, id: 'P' + Date.now(),color:this.curEditColor,
+                       open: false,drag: false,opation:'NEW'};
+          this.PointList.push(point);
+          this.RevokeObject.unshift(
+             {type:'POINT',
+              index:this.PointList.length - 1});
         },
-        pointStart(e,item){
-          this.isNewPoint = false;
+        draging(e,item,index) {
           this.leaveFast = 1;
-          this.pointOffsetX = e.offsetX;
-          this.pointOffsetY = e.offsetY;
-          //记录初始位置
-          this.pointX = e.clientX - this.pointOffsetX;
-          this.pointY = e.clientY - this.pointOffsetY;
-          //移动之前，获取该点上连接的线
-          this.$api.line.getPointLineMap({
-            pointid:item.id
-          }).then((res)=>{
-            if(res.retCode !== '200'){
-              console.log("get user line error");
-              return false;
+          //移动停止
+          item.drag = false;
+          // this.onDrag = true;
+          //初始位置
+          let startX = item.x;
+          let startY = item.y;
+          let LineList = this.LineList;
+          let RevokeObject = this.RevokeObject;
+          this.RevokeObject.unshift({
+            type:'POINT&LINE',
+            object:{
+              point:{},
+              line:[],
             }
-            this.PointLineList = res.retData;
-          }).catch(()=>{
-            console.log(err);
-          })
-        },
-        draging(e,item) {
-          let prex = item.x;
-          let prey = item.y;
-          //移动时关闭头像显示
-          item.open = false;
-          item.x = e.clientX - this.pointOffsetX;
-          item.y = e.clientY - this.pointOffsetY;
-          //超出边界回到原点
-          if(item.x<76.8 || item.y<51.5){
-            item.x = this.pointX;
-            item.y = this.pointY;
-          }
-          //避免在循环内定义变量
-          let line; //线
-          let path;//线路径
-          let pathString;//新的线路径
-          //遍历该节点上的线:左边
-          for (let i = 0; i < this.PointLineList.length; i++) {
-               line = document.getElementById(this.PointLineList[i].lineid.substring(1));
-               console.log(line.getAttribute("d"));
-              //重绘
-               path = line.getAttribute("d").split(' ');
-              if (this.PointLineList[i].lineid.substring(0, 1) === 'R') {
-                 let role = Math.atan2((item.x - path[0].slice(1)), (item.y - path[1]));
-                //变化速率
-                 let kx = Math.abs(item.x-prex)/2;
-                 let ky = Math.abs(item.y-prey)/2;
-                 path[0] = "M" + (item.x);
-                 path[1] = (item.y).toString();
-                 path[2] = "C" + (parseFloat(path[2].slice(1)) + Math.sin(role) * kx);
-                 path[3] = (parseFloat(path[3]) + Math.cos(role) * ky).toString();
-                 path[4] = (parseFloat(path[4]) + Math.sin(role) * kx).toString();
-                 path[5] = (parseFloat(path[5]) + Math.cos(role) * ky).toString();
+          });
+          //获取节点映射
+          let PointLineIndexList = this.LineList.reduce((total,current,index)=>{
+            //先保存旧数据，因为异步操作会更新这个数据导致取不到
+            let line = {
+              id:current.id,
+              color:current.color,
+              x1:current.x1,
+              y1:current.y1,
+              x2:current.x2,
+              y2:current.y2,
+              x3:current.x3,
+              y3:current.y3,
+              x4:current.x4,
+              y4:current.y4,
+              opation:current.opation,
+            };
+            (current.x1 === item.x && current.y1 === item.y)
+            && total.push({position:"R",index:index,instance:line})
+            || (current.x4 === item.x && current.y4 === item.y)
+            && total.push({position:"L",index:index,instance:line});
+            return total
+          },[]);
+          RevokeObject[0].object.line = PointLineIndexList;
+          document.onmousemove = function(e) {
+            let prex = item.x;
+            let prey = item.y;
+            //点是否正在移动
+            item.drag = true;
+            //移动时关闭头像显示
+            item.open = false;
+            //已保存的数据更新，把标识更换
+            item.opation = item.opation.substring(0,3);
+            item.x = e.clientX;
+            item.y = e.clientY;
+            let kx = Math.abs(item.x - prex) / 2;
+            let ky = Math.abs(item.y - prey) / 2;
+            //超出边界回到原点
+            if (item.x < 76.8 || item.y < 51.5 ) {
+              item.x = startX;
+              item.y = startY;
+              kx = ky = 0;
+            }
+            let role;
+            for (let i = 0; i < PointLineIndexList.length; i++) {
+              let position = PointLineIndexList[i].position;
+              let index = PointLineIndexList[i].index;
+              let line = LineList[index];
+              if (position === 'R') {
+                role = Math.atan2((item.x - line.x1), (item.y - line.y1));
+                line.x1 = item.x;
+                line.y1 = item.y;
               } else {
-                 let role = Math.atan2((item.x - path[6]), (item.y - path[7]));
-                //变化速率
-                 let kx = Math.abs(item.x-prex)/2;
-                 let ky = Math.abs(item.y-prey)/2;
-                 path[2] = "C" + (parseFloat(path[2].slice(1)) + Math.sin(role) * kx);
-                 path[3] = (parseFloat(path[3]) + Math.cos(role) * ky).toString();
-                 path[4] = (parseFloat(path[4]) + Math.sin(role) * kx).toString();
-                 path[5] = (parseFloat(path[5]) + Math.cos(role) * ky).toString();
-                 path[6] = (item.x).toString();
-                 path[7] = (item.y).toString();
+                role = Math.atan2((item.x - line.x4), (item.y - line.y4));
+                line.x4 = item.x;
+                line.y4 = item.y;
               }
-              pathString = path.join(' ');
-              line.setAttribute("d", pathString);
+              line.x2 = line.x2 + Math.sin(role) * kx;
+              line.y2 = line.y2 + Math.cos(role) * ky;
+              line.x3 = line.x3 + Math.sin(role) * kx;
+              line.y3 = line.y3 + Math.cos(role) * ky;
+              //已保存的数据更新，把标识更换
+              line.opation = line.opation.substring(0,3);
+            }
+          };
+          //抬起停止拖动
+          document.onmouseup = function () {
+            if(item.x !== startX || item.y !== startY) {
+              RevokeObject[0].object.point = {index:index,instance:{id:item.id,x:startX,y:startY,
+                  color:item.color,opation:item.opation}};
+            }else{
+              RevokeObject.splice(0,1)
+            }
+            document.onmousemove = null;
+            document.onmouseup = null;
           }
-        },
-        pointEnd(event,item) {
-            //记录节点放置位置
-            this.pointX = event.clientX - event.offsetX;
-            this.pointY = event.clientY - event.offsetY;
-            //节点落下时更新
-            this.$api.point.editPoint({
-              id:item.id,
-              x:item.x,
-              y:item.y
-            }).then((res)=>{
-              if(res.retCode !== '200'){
-                console.log("get user line error");
-                return false;
-              }
-            }).catch((err)=>{
-              console.error(err);
-            })
         },
         ShowHeadPic(e,item){
           //控制盒子离开条件
-          console.log(this.mouseState);
-          if(this.mouseState !== "lineins_state") {
-            this.leaveFast = 0;
-            this.seasonFlag = 'spring';
-            item.open = !item.open;
-            //这个点击两个不同的点会相互影响，后续可以采用数组增加的方式，同时展现多个节点的图片
-            this.downFlag = !this.downFlag;
-            if(item.open) {
-              let userHeadPic;
-              this.$nextTick(()=>{
-                 userHeadPic = document.getElementsByClassName("UHP" + item.id);
-                if (userHeadPic != null) {
-                  for (let i = 0, l = userHeadPic.length; i < l; i++) {
-                    userHeadPic[i].style.left =  (70 - 40 * Math.cos(-0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)) + item.x + "px";
-                    userHeadPic[i].style.top = (70 + 40 * Math.sin(-0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)) + item.y + "px";
+          if(!item.drag) {
+            if(this.mouseState !== "lineins_state") {
+              this.leaveFast = 0;
+              this.seasonFlag = 'spring';
+              item.open = !item.open;
+              //这个点击两个不同的点会相互影响，后续可以采用数组增加的方式，同时展现多个节点的图片
+              this.downFlag = !this.downFlag;
+              if (item.open) {
+                let userHeadPic;
+                this.$nextTick(() => {
+                  userHeadPic = document.getElementsByClassName("UHP" + item.id);
+                  if (userHeadPic != null) {
+                    for (let i = 0, l = userHeadPic.length; i < l; i++) {
+                      userHeadPic[i].style.left = (70 - 40 * Math.cos(-0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)) + item.x + "px";
+                      userHeadPic[i].style.top = (70 + 40 * Math.sin(-0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)) + item.y + "px";
+                    }
                   }
-                }
-              });
-            }
-          }else{
-            if(this.firstPoint == null){
-              this.firstPoint = item;
-            }else if(item.id !== this.firstPoint.id){
-              this.secondPoint = item;
-              //绘制路线
-              this.drawLine(this.firstPoint,this.secondPoint);
-              //把记录的第一个点重新赋值为null
-              this.firstPoint = null;
-            }
-          }
-          //记录该次点击的节点
-          this.prePoint = item;
-        },
-        //获取规定范围内所有的点,范围为头像显示半径
-        getNearbyPoint(e){
-          let letf = e.style.left;
-          let top = e.style.top;
-          for(let i = 0;i<=this.PointList.length;i++){
-            let point = this.PointList[i];
-            if(point.x<=letf && point.y <=top){
-              this.LittleList.push(point); //后续根据ID匹配
+                });
+              }
+            }else{
+              //拖动时不记录节点
+              if(this.firstPoint == null){
+                this.firstPoint = item;
+              }else if(item.id !== this.firstPoint.id){
+                this.secondPoint = item;
+                //绘制路线
+                this.drawLine(this.firstPoint,this.secondPoint);
+                //把记录的第一个点重新赋值为null
+                this.firstPoint = null;
+              }
             }
           }
         },
@@ -675,67 +677,60 @@
           controlTwo = controlOne;
           //端点二
           let pointTwo = {x:end.x,y:end.y};
-          //判断两点之间是否已有连线、（问题保留，后续会有时间的判断）
+          //判断两点之间是否已有连线
 
           //开始画线
           let line = {
-            id:"line"+Date.now(),
-            x1:start.x+10,
-            y1:start.y+10,
-            x2:controlOne.x+10,
-            y2:controlOne.y+10,
-            x3:controlTwo.x+10,
-            y3:controlTwo.y+10,
-            x4:pointTwo.x+10,
-            y4:pointTwo.y+10};
+            id:"L"+Date.now(),
+            color:this.curEditColor,
+            x1:start.x,
+            y1:start.y,
+            x2:controlOne.x,
+            y2:controlOne.y,
+            x3:controlTwo.x,
+            y3:controlTwo.y,
+            x4:pointTwo.x,
+            y4:pointTwo.y,
+            opation:'NEW'};
           this.LineList.push(line);
-          //判断左槽
-          let keys1 = this.leftLinePointMapper.keys();//该方法返回的是一个Iterator类型
-          let arr1 = Array.from(keys1);
-          let leftKeys = arr1.toString();
-          if(leftKeys.indexOf(start.id)> -1){
-            this.leftLinePointMapper.get(start.id).push("L"+line.id);
-          }else{
-            let left = [];
-            left.push("L"+line.id);
-            this.leftLinePointMapper.set(start.id,left);
-          }
-          //判断右槽
-          let keys2 = this.rightLinePointMapper.keys();
-          let arr2 = Array.from(keys2);
-          let rightKeys = arr2.toString();
-          if(rightKeys.indexOf(end.id)> -1){
-            this.rightLinePointMapper.get(end.id).push("R"+line.id);
-          }else{
-            let right = [];
-            right.push("R"+line.id);
-            this.rightLinePointMapper.set(end.id,right);
-          }
-
+          this.RevokeObject.unshift({
+            type:'LINEADD',
+            index:this.LineList.length - 1
+          })
         },
         //改变线条形状
-        ChangeLineShape(e){
-          let line = e.target;
-          //把路径参数分组
-          let pathString = line.getAttribute("d").split(' ');
-          let lenOne = Math.sqrt(Math.pow(e.clientX-pathString[0].slice(1),2)
-                       +Math.pow(e.clientY-pathString[1],2));
-          let lenTwo = Math.sqrt(Math.pow(e.clientX-pathString[6],2)
-                       +Math.pow(e.clientY-pathString[7],2));
-          document.onmousemove=function (event) {
-            //调整第一个控制点
+        ChangeLineShape(e,index){
+          let line = this.LineList[index];
+          this.RevokeObject.unshift({
+            type:'LINEUPDATE',
+            object:{index:index,instance:{
+                id:line.id,
+                color:line.color,
+                x1:line.x1,
+                y1:line.y1,
+                x2:line.x2,
+                y2:line.y2,
+                x3:line.x3,
+                y3:line.y3,
+                x4:line.x4,
+                y4:line.y4,
+                opation:line.opation,
+              }},
+          });
+          let lenOne = Math.sqrt(Math.pow(e.clientX - line.x1,2) + Math.pow(e.clientY - line.y1,2));
+          let lenTwo = Math.sqrt(Math.pow(e.clientX - line.x4,2) + Math.pow(e.clientY - line.y4,2));
+          document.onmousemove=function (e) {
             if(lenOne<=lenTwo) {
-              pathString[2] = "C"+event.clientX;
-              pathString[3] = event.clientY.toString();
-              let path = pathString.join(' ');
-              line.setAttribute("d", path);
+              //调整第一个控制点
+              line.x2 = e.clientX;
+              line.y2 = e.clientY;
             }else{
               //调整第二个控制点
-              pathString[4] = event.clientX.toString();
-              pathString[5] = event.clientY.toString();
-              let path = pathString.join(' ');
-              line.setAttribute("d", path);
+              line.x3 = e.clientX;
+              line.y3 = e.clientY;
             }
+            //已保存的数据更新，把标识更换
+            line.opation = line.opation.substring(0,3);
           };
           //抬起停止拖动
           document.onmouseup = function () {
@@ -745,22 +740,22 @@
         },
         //设置鼠标状态
         ChangeMouseState(e){
+          console.log(this.LineList);
           let el = e.target;
           this.show = false;
-          if(el.className == "linepic"){
+          if(el.className === "linepic"){
             this.mouseState = "lineins_state";
             //改变鼠标指针样式
             this.changePlainMouse = false;
           }
         },
         //右键详细信息
-        getMsgStartPoint(e){
-          // alert("hello"
-          let msgBox = e.target;
+        getMsgStartPoint(item){
           this.showMsgBox = !this.showMsgBox;
-          this.msgStartPoint.id = msgBox.id;
-          this.msgStartPoint.x = parseInt(msgBox.style.left);
-          this.msgStartPoint.y = parseInt(msgBox.style.top);
+          // this.msgStartPoint.id = msgBox.id;
+          this.msgStartPoint.x = item.x;
+          this.msgStartPoint.y = item.y;
+
         },
         //获取子组件返回的信息
         changePointColor(data){
@@ -769,10 +764,108 @@
             curPoint.style.backgroundColor = data.context;
           }
         },
+        //删除撤销操作
+        CancelAndRevoke(curObj,opation){
+          if (curObj) {
+            switch (curObj.type) {
+              case 'POINT': {
+                //新增操作，删除即可
+                this.PointList.splice(curObj.index, 1);
+              } break;
+              case 'POINT&LINE': {
+                //更新操作，回到之前的位置
+                Vue.set(this.PointList, curObj.object.point.index, curObj.object.point.instance);
+                for (let i = 0; i < curObj.object.line.length; i++) {
+                  Vue.set(this.LineList, curObj.object.line[i].index, curObj.object.line[i].instance);
+                }
+              } break;
+              case 'LINEADD': {
+                this.LineList.splice(curObj.index, 1)
+              } break;
+              case 'LINEUPDATE': {
+                Vue.set(this.LineList, curObj.object.index, curObj.object.instance);
+              } break;
+            }
+            //删除第一个对象
+            if(opation === 'REVOKE') { this.RevokeObject.splice(0, 1)}
+          }
+        },
+        //编辑撤销
+        editRevoke(){
+          let curObj = this.RevokeObject[0];
+          this.CancelAndRevoke(curObj,'REVOKE');
+        },
+        //此次编辑取消
+        editCancel(){
+          for(let i = 0;i <= this.RevokeObject.length; i++){
+            let curObj = this.RevokeObject[i];
+            this.CancelAndRevoke(curObj,'CANCEL');
+          }
+        },
+        //此次编辑保存
+        editSave(){
+          //保存新增点
+          let PointAdd = this.PointList.filter(item => item.opation === 'NEW');
+          if(PointAdd.length !== 0) {
+            this.$api.point.savePoints({PointAdd}).then((res) => {
+              if (res.retCode !== '200') {
+                console.log("get user point error");
+                return false;
+              }
+            }).catch((err) => {
+              console.log(err);
+            });
+          }
+          //更新节点
+          let PointEdit = this.PointList.filter(item => item.opation === 'OLD');
+          if(PointEdit.length !== 0){
+            this.$api.point.editPoints({PointEdit}).then((res) => {
+              if (res.retCode !== '200') {
+                console.log("get user point error");
+                return false;
+              }
+            }).catch((err) => {
+              console.log(err);
+            });
+          }
+          //保存新增路径
+          let LineAdd = this.LineList.filter(item => item.opation === 'NEW');
+          if(LineAdd.length !== 0){
+            this.$api.line.saveLines({LineAdd}).then((res) => {
+              if (res.retCode !== '200') {
+                console.log("get user line error");
+                return false;
+              }
+            }).catch((err) => {
+              console.log(err);
+            });
+          }
+          //更新路径
+          let LineEdit = this.LineList.filter(item => item.opation === 'OLD');
+          if(LineEdit.length !== 0){
+            this.$api.line.editLines({LineEdit}).then((res) => {
+              if (res.retCode !== '200') {
+                console.log("get user line error");
+                return false;
+              }
+            }).catch((err) => {
+              console.log(err);
+            });
+          }
+        },
         //添加群聊
         addGroupToChat(data){
           this.curGroupChat = data;
           this.highlight = true;
+        },
+        //打开颜色表集框
+        editColor(){
+          this.editColorShow = !this.editColorShow;
+        },
+        //改变编辑颜色
+        changeEditColor(data){
+          this.curEditColor = data.context;
+          this.editColorShow = false;
         },
         //用户界面
         showFriendGroup(){
@@ -808,7 +901,7 @@
             velocity(el,{opacity:'0'},{duration: 200, complete: done})
           }
         },
-        downPicturesBeforeEnter(el,done){
+        downPicturesBeforeEnter(el){
           //这里记得适配屏幕尺寸
           el.style.top = (-0 * (Math.random()+0.5)) + 'px';
           el.style.left = (1536 * Math.random()) + 'px';
@@ -837,12 +930,6 @@
           velocity(el,{opacity:0},{duration:200,queue:false,complete:done});
           velocity(el,{display:'none'},{complete:done});
         },
-        pageEnter(e,done){
-          velocity(e,{opacity:1},{duration:200,complete:done});
-        },
-        pageLeave(e,done){
-          velocity(e,{opacity:0},{duration:200,complete:done});
-        },
         downPictureSlow(e){
           let target = e.target;
           target.setAttribute('speed','slow')
@@ -850,6 +937,12 @@
         downPictureFast(e){
           let target = e.target;
           target.setAttribute('speed','fast');
+        },
+        pageEnter(e,done){
+          velocity(e,{opacity:1},{duration:200,complete:done});
+        },
+        pageLeave(e,done){
+          velocity(e,{opacity:0},{duration:200,complete:done});
         },
         //登出
         showLoginOutOpa(){
@@ -877,12 +970,28 @@
             curPage.style.top = '0px'
           }
         },
-      }
-    }
+      },
+    // watch:{
+    //   监听该数组的长度，大于5去除
+    //   'RevokeObject.length':{
+    //       handler(newval){
+    //         if(newval>=5){
+    //           this.RevokeObject.splice(5);
+    //         }
+    //       }
+    //     }
+    //     RevokeStep:{
+    //       handler(newval){
+    //         if(newval<0){
+    //           this.RevokeStep = 0;
+    //         }
+    //       }
+    //     }
+    // }
+  }
 </script>
 
 <style scoped>
-
 #mainpage{
   height: 100%;
   width: 100%;
@@ -901,13 +1010,15 @@
   float: left;
 }
 .head-opation{
+  position: absolute;
   height: 20px;
   width: 60px;
   float: right;
-  margin-top: 42px;
-  margin-right: 30px;
   padding: 2px 1px;
   box-sizing: border-box;
+  z-index: 2021;
+  right: 30px;
+  top: 42px;
   /*background-color: white;*/
 }
 .login-out{
@@ -939,9 +1050,6 @@
 }
 .login-out-context{
   width: 70px;
-  float: right;
-  margin-top: 60px;
-  margin-right: -60px;
   overflow: hidden;
   transition: all 0.2s linear 0s;
   /*background-color: black;*/
@@ -1481,13 +1589,20 @@
 .commonpoint{
   position: absolute;
   margin: 0px;
-  /*margin-top: 10px;*/
   height: 20px;
   width: 20px;
   border-radius: 50%;
+  /*padding: 10px;*/
+  /*border: 10px yellow solid;*/
   background-color: yellow;
   z-index: 2;
-  /*text-align: center;*/
+  /*transform-origin: 50% 50%;*/
+}
+.pointins{
+  position: absolute;
+  width: 0px;
+  height: 0px;
+  z-index: 2;
 }
 .lineins{
   /*鼠标样式，需要在webpack.base.conf.js里面加上ico格式*/
@@ -1504,26 +1619,60 @@
   margin-left: 30px;
   /*text-align: center;*/
 }
-.ring{
-  width: 200px;
-  height: 200px;
-  position: relative;
-  margin: auto;
+.edit-color{
+  position: absolute;
+  height: 20px;
+  width: 20px;
+  background-color: #66CCFF;
+  /*padding: 10px;*/
+  /*border: 10px yellow solid;*/
+  z-index: 2;
+  margin-left: 60px;
 }
-.circle{
-    width: 200px;
-    height: 200px;
-    /*position: absolute;*/
-    margin-left: -145px;
-    margin-top: -145px;
-    /*left: -400px;  !*设置初始位置，不要挡住*!*/
-    /*top:-400px;*/
-    /*background-color: black;*/
+.edit-revoke{
+  position: absolute;
+  height: 20px;
+  width: 20px;
+  border-radius: 50%;
+  /*padding: 10px;*/
+  /*border: 10px yellow solid;*/
+  background-color: yellow;
+  z-index: 2;
+  margin-left: 90px;
 }
-  /*.head-pic{*/
-  /*  width: 300px;*/
-  /*  height: 300px;*/
-  /*}*/
+.edit-cancel{
+  position: absolute;
+  height: 20px;
+  width: 20px;
+  border-radius: 50%;
+  /*padding: 10px;*/
+  /*border: 10px yellow solid;*/
+  background-color: yellow;
+  z-index: 2;
+  margin-left: 120px;
+}
+.edit-save{
+  position: absolute;
+  height: 20px;
+  width: 20px;
+  border-radius: 50%;
+  /*padding: 10px;*/
+  /*border: 10px yellow solid;*/
+  background-color: yellow;
+  z-index: 2;
+  margin-left: 150px;
+}
+.edit-status{
+  position: absolute;
+  height: 20px;
+  width: 20px;
+  border-radius: 50%;
+  /*padding: 10px;*/
+  /*border: 10px yellow solid;*/
+  background-color: yellow;
+  z-index: 2;
+  margin-left: 180px;
+}
 .userHeadPic{
   width: 50px;
   height: 50px;
@@ -1551,6 +1700,18 @@
 }
 #globe-setting{
     background-color: #66CCFF;
+}
+.color-edit{
+  position: absolute;
+  width: 182px;
+  top: 108px;
+  left: 80px;
+  z-index: 2021;
+  /*border-right: 1px solid black;*/
+  /*border-bottom: 1px solid black;*/
+  /*border-left: 1px solid black;*/
+  /*border-radius: 0px 0px 5px 5px;*/
+  /*background-color: #eeeeee;*/
 }
 #earth-page{
   background-color: #66CCFF;

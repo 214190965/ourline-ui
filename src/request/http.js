@@ -53,7 +53,7 @@ Axios.interceptors.response.use(
           errMsg =i18n.t('http.auth_err');
           needPromise = false;
           let path = '/login';
-          let sslFlagStr = Ajax.vm.$store.getters['UserStore/getSslflag'];
+          let sslFlagStr = Ajax.vm.$store.getters['userStore/getSslflag'];
           if(sslFlagStr && sslFlagStr.indexOf('system') > -1){
             path = '/loginssl?' + sslFlagStr;
           }

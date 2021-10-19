@@ -17,5 +17,6 @@ export default {
   },
   sysCfgFileName:'static/sysConfig.json',//配置文件名称,vue2.0系列放在static目录下
   zuulPath_user:'/user',//网关中配置的用户服务路径前缀
-  zuulPath_point:'/serve', //节点服务路径前缀
+  zuulPath_point:'/serve/point', //节点服务路径前缀
+  zuulPath_line:'/serve/line', //节点服务路径前缀
 }

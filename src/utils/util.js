@@ -24,4 +24,5 @@ util.getSession = function(key) {
   return JSON.parse(sessionStorage.getItem(key))
 };
 
+
 export default util

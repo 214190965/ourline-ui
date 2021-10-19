@@ -15,7 +15,7 @@
           <path id="borderPath"
                 fill="white"
                 stroke="grey"
-                stroke-width="1"
+                stroke-width="0.5"
           ></path>
         </svg>
         <div class="main"
@@ -532,37 +532,33 @@
             //判断边界情况、如果靠近右边界，则显示在左边、默认在右边
             if(this.startPoint.x > 900){
               this.onLeft = true;
-              start.x = 1541 - this.startPoint.x;
+              start.x = 1550 - this.startPoint.x;
               this.contextPostion.x = 'unset';
               this.contextPostion.z = start.x + 'px';
             }else {
               this.onLeft = false;
-              start.x = this.startPoint.x + 25;
+              start.x = this.startPoint.x + 15;
               this.contextPostion.x = start.x + 'px';
               this.contextPostion.z = 'unset';
             }
             start.y = this.startPoint.y - 98;
             let position = this.onLeft === false ? 20 : 0;
-            let circle = this.onLeft === false ? 0 : 1;
             let temp = 20 - position;
-            if(start.y <= 20){
-              path = 'M'+position+ ' 10 L'+temp+' '+(start.y+10)+' 10 50 10 500 A10 10 0 0 '+circle+' '+position+' 510';
+            if(start.y <= 25){
+              path = 'M'+position+ ' 10 L'+temp+' '+start.y+' 10 50';
               start.y = 108;
             }else if(start.y >= 540){
-              path = 'M'+ position + ' 10 A10 10 0 0 '+circle+' 10 20 L10 470 '+temp+' '+(start.y-50)+' '+ position+' 510';
+              path = 'M'+ position + ' 450 L'+temp+' '+(start.y-60)+' '+ position+' 510';
               start.y = 168;
             }else{
               if(start.y <= 260){
-                path = 'M'+position+' 10 A10 10 0 0 '+circle+' 10 20 L10 '+start.y+' '+temp+' '+(start.y+10)+' 10 '+(start.y+20)+
-                       ' 10 500 A10 10 0 0 '+circle+' '+position+' 510';
+                path = 'M10 '+(start.y-10)+' L'+temp+' '+start.y+' 10'+' '+(start.y+10);
                 start.y = 108;
               }else if(start.y >= 300){
-                path = 'M'+position+' 10 A10 10 0 0 '+circle+' 10 20 L10 '+(start.y-60)+' '+temp+' '+(start.y-50)+' 10 '+(start.y-40)+
-                       ' 10 500 A10 10 0 0 0 '+position+' 510';
+                path = 'M10 '+(start.y-70)+' L'+temp+' '+(start.y-60)+' 10'+' '+(start.y-50);
                 start.y = 168;
               }else{
-                path = 'M'+position+' 10 A10 10 0 0 '+circle+' 10 20 L10 260 ' +temp+ ' 270 10 280'+
-                       ' 10 500 A10 10 0 0 '+circle+' '+position+' 510';
+                path = 'M10 250 L' +temp+ ' 260 10 270';
                 start.y = start.y - 152;
               }
             }
@@ -581,13 +577,13 @@
             let picture = document.getElementById('SP' + i);
             if (this.styleAfter) {
               if(i !== index) {
-                picture.style.marginLeft = '-0.5px';
+                // picture.style.marginLeft = '-0.5px';
                 picture.style.width = "0px";
               }else{
                 picture.style.width = '310px';
               }
             }else{
-              picture.style.marginLeft = "4px";
+              // picture.style.marginLeft = "4px";
               picture.style.width = "100px";
               this.pictitle = "picture";
             }
@@ -1031,7 +1027,7 @@
 /*过渡动画*/
 .information-pre{
   box-sizing: border-box;/*固定大小*/
-  width: 320px;
+  width: 318.45px;
   height: 50px;
   background-color:blueviolet;
   transition: all 0.3s linear 0s;
@@ -1041,14 +1037,14 @@
   height: 0%;
 }
 .picture-pre{
-  width: 320px;
+  width: 318.45px;
   height: auto;
   background-size: 100% 100%;
   background-color:green;
   /*transition: all 10s linear 0s;*/
 }
 .whisper-pre{
-  width: 320px;
+  width: 318.45px;
   height: 225px;
   background-color:lavenderblush;
   /*transition: all 10s linear 0s;*/
@@ -1068,7 +1064,7 @@
   box-sizing: border-box;/*固定大小*/
   width: 100px;
   height: 100%;
-  margin-left: 4px;
+  margin-right: 3px;
   /*border: 1px solid black;*/
   background-image: url("/static/img/528865114564200.jpg");
   transition: all 0.3s linear 0s;
@@ -1091,7 +1087,7 @@
 
 .context-body-pre{
   box-sizing: border-box;/*固定高度*/
-  padding: 6px 5.2px 6px 0px;
+  padding: 6px 3px 6px 3px;
   height: 145px;
   width: 100%;
   transition: all 0.3s linear 0s;
